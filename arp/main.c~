@@ -8,6 +8,13 @@
 #include "error.h"
 #include "interace.h"
 
+#define ETHTYPE 0x0806
+#define HTYPE 0x0001
+#define PTYPE 0x0800
+#define HWLEN 6
+#define PLEN 4
+#define OPREQ  1
+
 typedef struct{
  unsigned char d_mac_addr[6];   // fff....
  unsigned char s_mac_addr[6];  //1getmac()
@@ -26,31 +33,47 @@ typedef struct{
  unsigned char dst_p_addr[4];    // ip
 } _arpHeader;
 
-void headerSet(arpPacket &Packet, ){
- memset(&Packet.ethHeader.d_mac_addr,0xff,6);
- getMac(Packet.ethHeader.s_mac_addr);
- Packet.ethHeader=0x0806;
- Packet.arpHeader.htype=0x0001;
-}
 typedef struct{
  _ethHeader ethHeader;
  _arpHeader arpHeader;
 } arpPacket;
 
-int main(){
+void headerSet(arpPacket &Packet, unsigned char &dstIP){
+ memset(&Packet,0,sizeof(arpPacket));
+ memset(&Packet.ethHeader.d_mac_addr,0xff,6);
+ getMac(Packet.ethHeader.s_mac_addr);
+ memcpy(Packet.ethHeader.type, htons(ETHTYPE) , HWLEN):
+ memcpy(Packet.arpHeader.htype, htons(HTYPE), 2) ;
+ Packet.arpHeader.hw_len=HWLEN;
+ Packet.arpHeader.p_len=PLEN;
+ memcpy(Packet.arpHeader.oper,htons(OPREQ),2);
+ getMac(Packet.arpHeader.sen_hw_addr);
+ getIp(Packet.arpHeader.sen_ip_addr);
+ memset(Packet.arpHeader.dst_hw_addr,0,HWLEN);
+ memcpy(Packet.arpHeader.dst_p_addr,dstIp,4);
+}
+
+void setDst(struct sockaddr_ll &addr){
+ memset(addr,0,sizeof(struct sockaddr_ll));
+ addr.sll_family=AF_PACKET;
+ addr.sll_ifindex=getIndex();
+ addr.sll_halen=HWLEN;
+}
+
+int main(int argc, char *argv[]){
+ if(argc <1){
+	printf("need IP\n");
+	exit(1);
+	}
+
  int sock;
  struct sockaddr_ll addr;
- struct ifreq ifr;
+ arpPacket Packet;
 
+ headerSet(&Packet,inet_aton(argv[1])); 
  sock=socket(PF_PACKET,SOCKET_RAW,htons(ETH_P_ARP);
-
- memset(&addr,0,sizeof(addr));
+ setDst(&addr);
  
- addr.sll_family=AF_PACKET;
- addr.sll_addr=ifr.ifr_hwaddr.sa_data;
- addr.sll_halen=ETH_ALEN;
- addr.sll_ifindex="eth0";
-
  
 return 0;
 }

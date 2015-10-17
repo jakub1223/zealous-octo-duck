@@ -10,7 +10,7 @@
 
 	printf(" HWADDR:");
 	for(;i<6;i++){
-		printf("%x\n",addr[i]);
+		printf("%x:",addr[i]);
 	}
 	printf("\n");
  }
@@ -27,7 +27,18 @@ void getIp(unsigned char & addr){
 	addr=((unsigned char *)ifr.ifr_addr.sa_data)+2;
 	printf(" IPADDR:");
 	for(;i<4;i++){
-		printf("%d\n",addr[i]);
+		printf("%d\n.",addr[i]);
 	}
 	printf("\n");
  }
+
+ int getIndex(){
+	int sock,i=0;
+	struct ifreq ifr;
+	sock=socket(AF_INET,SOCK_STREAM,0);
+	strcpy(ifr.ifr_name, "wlan0");
+	ioctl(sock,SIOCGIFINDEX,&ifr);
+	printf("index: %d\n",ifr.ifr_ifindex);
+ return ifr.ifr_ifindex;
+
+}

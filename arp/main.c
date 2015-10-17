@@ -14,6 +14,7 @@
 #define HWLEN 6
 #define PLEN 4
 #define OPREQ  1
+#define OPREP 2
 
 typedef struct{
  unsigned char d_mac_addr[6];   // fff....
@@ -33,7 +34,13 @@ typedef struct{
  unsigned char dst_p_addr[4];    // ip
 } _arpHeader;
 
-void headerSet(arpPacket &Packet, ){
+typedef struct{
+ _ethHeader ethHeader;
+ _arpHeader arpHeader;
+} arpPacket;
+
+void headerSet(arpPacket &Packet, unsigned char &dstIP){
+ memset(&Packet,0,sizeof(arpPacket));
  memset(&Packet.ethHeader.d_mac_addr,0xff,6);
  getMac(Packet.ethHeader.s_mac_addr);
  memcpy(Packet.ethHeader.type, htons(ETHTYPE) , HWLEN):
@@ -41,27 +48,44 @@ void headerSet(arpPacket &Packet, ){
  Packet.arpHeader.hw_len=HWLEN;
  Packet.arpHeader.p_len=PLEN;
  memcpy(Packet.arpHeader.oper,htons(OPREQ),2);
- 
+ getMac(Packet.arpHeader.sen_hw_addr);
+ getIp(Packet.arpHeader.sen_ip_addr);
+ memset(Packet.arpHeader.dst_hw_addr,0,HWLEN);
+ memcpy(Packet.arpHeader.dst_p_addr,dstIp,4);
 }
-typedef struct{
- _ethHeader ethHeader;
- _arpHeader arpHeader;
-} arpPacket;
 
-int main(){
+void setDst(struct sockaddr_ll &addr){
+ memset(addr,0,sizeof(struct sockaddr_ll));
+ addr.sll_family=AF_PACKET;
+ addr.sll_ifindex=getIndex();
+ addr.sll_halen=HWLEN;
+}
+
+int main(int argc, char *argv[]){
+ if(argc <1){
+	printf("need IP\n");
+	exit(1);
+	}
+
  int sock;
- struct sockaddr_ll addr;
- struct ifreq ifr;
+ struct sockaddr_ll addr,recvAddr;
+ arpPacket packet,recvPacket;
+ memset(recvPacket,0,sizeof(arpPacket));
+
+ headerSet(&packet,inet_aton(argv[1])); 
 
  sock=socket(PF_PACKET,SOCKET_RAW,htons(ETH_P_ARP);
-
- memset(&addr,0,sizeof(addr));
+ setDst(&addr);
  
- addr.sll_family=AF_PACKET;
- addr.sll_addr=ifr.ifr_hwaddr.sa_data;
- addr.sll_halen=ETH_ALEN;
- addr.sll_ifindex="eth0";
+ sendto(sock,&packet,sizeof(arpPacket),0,(struct sockaddr*)addr,sizeof(struct sockaddr));
 
+ while(1){
+	memset(recvAddr,0,sizeof(struct sockaddr_ll));
+	recvfrom(sock,&recvPacket,sizeof(arpPacket),0,(struct sockaddr*)recvAddr,sizeof(struct sockaddr));
+	if(memcmp(recvPacket.arpHeader.oper,(void *)htons(OPREP),2)!=0){
+		break;
+	}
+ }
  
 return 0;
 }
