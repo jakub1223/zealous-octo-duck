@@ -8,13 +8,6 @@
 #include "error.h"
 #include "interace.h"
 
-#define ETHTYPE 0x0806
-#define HTYPE 0x0001
-#define PTYPE 0x0800
-#define HWLEN 6
-#define PLEN 4
-#define OPREQ  1
-
 typedef struct{
  unsigned char d_mac_addr[6];   // fff....
  unsigned char s_mac_addr[6];  //1getmac()
@@ -36,12 +29,8 @@ typedef struct{
 void headerSet(arpPacket &Packet, ){
  memset(&Packet.ethHeader.d_mac_addr,0xff,6);
  getMac(Packet.ethHeader.s_mac_addr);
- memcpy(Packet.ethHeader.type, htons(ETHTYPE) , HWLEN):
- memcpy(Packet.arpHeader.htype, htons(HTYPE), 2) ;
- Packet.arpHeader.hw_len=HWLEN;
- Packet.arpHeader.p_len=PLEN;
- memcpy(Packet.arpHeader.oper,htons(OPREQ),2);
- 
+ Packet.ethHeader=0x0806;
+ Packet.arpHeader.htype=0x0001;
 }
 typedef struct{
  _ethHeader ethHeader;

@@ -1,5 +1,5 @@
-#ifndef INTERACE_H
-#define INTERACE_H
+#ifndef INTERFACE_H
+#define INTERFACE_H
 
  void macAddr(int8_t *Mac);
 
