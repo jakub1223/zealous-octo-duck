@@ -1,8 +1,11 @@
 #ifndef INTERACE_H
 #define INTERACE_H
 
- void macAddr(int8_t *Mac);
+#include "interace.h"
+ void getMac(unsigned char * addr);
 
- void ipAddr(int8_t *Ip);
+ void getIP(unsigned char * addr);
+
+ int getIndex();
 
 #endif
