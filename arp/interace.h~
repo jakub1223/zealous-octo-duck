@@ -3,7 +3,7 @@
 
  void getMac(unsigned char * addr);
 
- void getIP(unsigned char * addr);
+ void getIP(uint32_t * addr1);
 
  int getIndex();
 

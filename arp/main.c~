@@ -97,10 +97,13 @@ int main(int argc, char *argv[]){
  memset(recvPacket,0,sizeof(arpPacket));
 
  unsigned char dstIP[]={192,168,1,1};
- unsigned char srcIP[]={192,168,1,244};
  unsigned char dstMac[]={255,255,255,255,255,255};
- unsigned char srcMac[]={0x9c,0x4e,0x36,0x99,0x7c,0x10};
-
+ unsigned char srcMac1[]={0x9c,0x4e,0x36,0x99,0x7c,0x10};
+ unsigned char *srcIP,*srcMac;
+ srcMac=malloc(6);
+ srcIP=malloc(4);
+ getIP(srcIP);
+ getMac(srcMac);
  headerSet(packet,srcMac,srcIP,dstMac,dstIP); 
 
  sock=socket(PF_PACKET,SOCK_RAW,htons(ETH_P_ARP));
@@ -118,7 +121,7 @@ int main(int argc, char *argv[]){
  while(1)
  {
 	memset(recvAddr,0,sizeof(struct sockaddr_ll));
-	rcv=recvfrom(sock,recvPacket,sizeof(arpPacket),0,(void *)recvAddr,&rcvAddrlen);
+	rcv=recvfrom(sock,recvPacket,sizeof(arpPacket),0,(void *)recvAddr,(socklen_t*)&rcvAddrlen);
 	if(rcv<0) 
 		{ printf("%d\n",rcv);}
 	if(memcmp(&recvPacket->arpHeader.oper,&request,2)==0){
@@ -127,5 +130,11 @@ int main(int argc, char *argv[]){
  }
  recvPrint(recvPacket);
  
+ free(addr);
+ free(recvAddr);
+ free(packet);
+ free(recvPacket);
+ free(srcIP);
+ free(srcMac);
 return 0;
 }

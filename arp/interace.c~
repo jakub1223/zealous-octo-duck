@@ -16,13 +16,15 @@
 	sock=socket(AF_INET,SOCK_STREAM,0);
 	strcpy(ifr.ifr_name, "wlan0");
 	ioctl(sock,SIOCGIFHWADDR,&ifr);
-	addr=(unsigned char *)ifr.ifr_hwaddr.sa_data;
-
+	//addr=(unsigned char *)ifr.ifr_hwaddr.sa_data;
+	//printf("%d:",(unsigned char )ifr.ifr_hwaddr.sa_data[0]);
+	memcpy(addr,&ifr.ifr_hwaddr.sa_data,6);
 	printf(" HWADDR:");
 	for(;i<6;i++){
 		printf("%x:",addr[i]);
 	}
 	printf("\n");
+	close(sock);
  }
 
 void getIP(unsigned char * addr){
@@ -37,6 +39,7 @@ void getIP(unsigned char * addr){
 		printf("%d.",addr[i]);
 	}
 	printf("\n");
+	close(sock);
  }
 
  int getIndex(){
@@ -45,7 +48,6 @@ void getIP(unsigned char * addr){
 	sock=socket(AF_INET,SOCK_STREAM,0);
 	strcpy(ifr.ifr_name, "wlan0");
 	ioctl(sock,SIOCGIFINDEX,&ifr);
-	printf("index: %d\n",ifr.ifr_ifindex);
  return ifr.ifr_ifindex;
  }
 
