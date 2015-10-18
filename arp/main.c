@@ -5,6 +5,7 @@
 #include <sys/socket.h>
 #include <net/ethernet.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <string.h> 
 
 #include "error.h"
@@ -19,21 +20,21 @@
 #define OPREP 2
 
 typedef struct{
- u_char d_mac_addr[HWLEN];   // fff....
- u_char s_mac_addr[HWLEN];  //1getmac()
- u_short type;     //0x0806
+ u_char d_mac_addr[HWLEN];   
+ u_char s_mac_addr[HWLEN]; 
+ u_short type;  
 } _ethHeader;
 
 typedef struct{
- u_short htype;  //0x0001
- u_short ptype;      // 0x0800
- u_char hw_len;     //6
- u_char p_len;       // 4
- u_short oper;     // req 1
- u_char sen_hw_addr[HWLEN];  // getMac()
- u_char sen_p_addr[4];    //getIp();
- u_char dst_hw_addr[HWLEN];   // 00...
- u_char dst_p_addr[4];    // ip
+ u_short htype; 
+ u_short ptype;    
+ u_char hw_len;   
+ u_char p_len;    
+ u_short oper;     
+ u_char sen_hw_addr[HWLEN];  
+ u_char sen_p_addr[4];   
+ u_char dst_hw_addr[HWLEN];   
+ u_char dst_p_addr[4];  
 } _arpHeader;
 
 typedef struct{
@@ -81,7 +82,7 @@ void recvPrint(arpPacket * packet)
 }
 
 int main(int argc, char *argv[]){
- if(argc <1){
+ if(argc =1){
 	printf("need IP\n");
 	exit(1);
 	}
@@ -90,50 +91,62 @@ int main(int argc, char *argv[]){
  struct sockaddr_ll *addr,*recvAddr;
  arpPacket *packet,*recvPacket;
 
+ sock=socket(PF_PACKET,SOCK_RAW,htons(ETH_P_ARP));
+ if(sock<0){ 
+	printf("error sock\n");
+	exit(1);
+	}
+
  addr=malloc(sizeof(struct sockaddr_ll));
  recvAddr=malloc(sizeof(struct sockaddr_ll));
  packet=malloc(sizeof(arpPacket));
  recvPacket=malloc(sizeof(arpPacket));
  memset(recvPacket,0,sizeof(arpPacket));
 
- unsigned char dstIP[]={192,168,1,1};
  unsigned char dstMac[]={255,255,255,255,255,255};
  unsigned char *srcIP,*srcMac;
- srcMac=malloc(6);
- srcIP=malloc(4);
- getIP(srcIP);
+ unsigned char *dstIP;
+
+ dstIP=malloc(PLEN);
+ sscanf(argv[1], "%d.%d.%d.%d", dstIP, dstIP+1, dstIP+2, dstIP+3);
+
+ srcMac=malloc(HWLEN);
  getMac(srcMac);
+
+ srcIP=malloc(PLEN);
+ getIP(srcIP);
+ 
  headerSet(packet,srcMac,srcIP,dstMac,dstIP); 
 
- sock=socket(PF_PACKET,SOCK_RAW,htons(ETH_P_ARP));
- if(sock<0)
-	{ printf("error sock\n");}
  setDst(addr);
 
-
  if(sendto(sock,packet,sizeof(arpPacket),0,(struct sockaddr*)addr,sizeof(struct sockaddr_ll))<0) {
-	printf("send sock error\n");
+	printf("send  error\n");
+	close(socket);
 	}
+
+
  int request=htons(OPREP);
  int rcv;
  size_t rcvAddrlen=sizeof(struct sockaddr_ll);
- while(1)
+ do
  {
 	memset(recvAddr,0,sizeof(struct sockaddr_ll));
 	rcv=recvfrom(sock,recvPacket,sizeof(arpPacket),0,(void *)recvAddr,(socklen_t*)&rcvAddrlen);
 	if(rcv<0) 
 		{ printf("%d\n",rcv);}
-	if(memcmp(&recvPacket->arpHeader.oper,&request,2)==0){
-		break;
-	}
- }
+ } while(memcmp(&recvPacket->arpHeader.oper,&request,2)!=0);
+
  recvPrint(recvPacket);
  
+
+
  free(addr);
  free(recvAddr);
  free(packet);
  free(recvPacket);
  free(srcIP);
+ free(dstIP);
  free(srcMac);
 return 0;
 }
