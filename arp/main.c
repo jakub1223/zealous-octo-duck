@@ -82,7 +82,7 @@ void recvPrint(arpPacket * packet)
 }
 
 int main(int argc, char *argv[]){
- if(argc =1){
+ if(argc < 1){
 	printf("need IP\n");
 	exit(1);
 	}
@@ -129,13 +129,12 @@ int main(int argc, char *argv[]){
  int request=htons(OPREP);
  int rcv;
  size_t rcvAddrlen=sizeof(struct sockaddr_ll);
- do
- {
-	memset(recvAddr,0,sizeof(struct sockaddr_ll));
-	rcv=recvfrom(sock,recvPacket,sizeof(arpPacket),0,(void *)recvAddr,(socklen_t*)&rcvAddrlen);
-	if(rcv<0) 
-		{ printf("%d\n",rcv);}
- } while(memcmp(&recvPacket->arpHeader.oper,&request,2)!=0);
+
+ memset(recvAddr,0,sizeof(struct sockaddr_ll));
+ rcv=recvfrom(sock,recvPacket,sizeof(arpPacket),0,(void *)recvAddr,(socklen_t*)&rcvAddrlen);
+ if(rcv<0) 
+	{ printf("%d\n",rcv);}
+
 
  recvPrint(recvPacket);
  

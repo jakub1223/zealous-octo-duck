@@ -82,7 +82,7 @@ void recvPrint(arpPacket * packet)
 }
 
 int main(int argc, char *argv[]){
- if(argc =1){
+ if(argc < 1){
 	printf("need IP\n");
 	exit(1);
 	}
@@ -90,6 +90,12 @@ int main(int argc, char *argv[]){
  int sock;
  struct sockaddr_ll *addr,*recvAddr;
  arpPacket *packet,*recvPacket;
+
+ sock=socket(PF_PACKET,SOCK_RAW,htons(ETH_P_ARP));
+ if(sock<0){ 
+	printf("error sock\n");
+	exit(1);
+	}
 
  addr=malloc(sizeof(struct sockaddr_ll));
  recvAddr=malloc(sizeof(struct sockaddr_ll));
@@ -112,27 +118,23 @@ int main(int argc, char *argv[]){
  
  headerSet(packet,srcMac,srcIP,dstMac,dstIP); 
 
- sock=socket(PF_PACKET,SOCK_RAW,htons(ETH_P_ARP));
- if(sock<0){ printf("error sock\n");
-	}
-
  setDst(addr);
 
  if(sendto(sock,packet,sizeof(arpPacket),0,(struct sockaddr*)addr,sizeof(struct sockaddr_ll))<0) {
-	printf("send sock error\n");
+	printf("send  error\n");
+	close(socket);
 	}
 
 
  int request=htons(OPREP);
  int rcv;
  size_t rcvAddrlen=sizeof(struct sockaddr_ll);
- do
- {
-	memset(recvAddr,0,sizeof(struct sockaddr_ll));
-	rcv=recvfrom(sock,recvPacket,sizeof(arpPacket),0,(void *)recvAddr,(socklen_t*)&rcvAddrlen);
-	if(rcv<0) 
-		{ printf("%d\n",rcv);}
- } while(memcmp(&recvPacket->arpHeader.oper,&request,2)!=0);
+
+ memset(recvAddr,0,sizeof(struct sockaddr_ll));
+ rcv=recvfrom(sock,recvPacket,sizeof(arpPacket),0,(void *)recvAddr,(socklen_t*)&rcvAddrlen);
+ if(rcv<0) 
+	{ printf("%d\n",rcv);}
+
 
  recvPrint(recvPacket);
  
