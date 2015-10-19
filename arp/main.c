@@ -1,11 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <linux/if_packet.h>
-#include <linux/if_ether.h>
 #include <sys/socket.h>
 #include <net/ethernet.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <string.h> 
 
 #include "error.h"
@@ -82,7 +79,7 @@ void recvPrint(arpPacket * packet)
 }
 
 int main(int argc, char *argv[]){
- if(argc < 1){
+ if(argc == 1){
 	printf("need IP\n");
 	exit(1);
 	}
@@ -125,21 +122,17 @@ int main(int argc, char *argv[]){
 	close(socket);
 	}
 
-
- int request=htons(OPREP);
- int rcv;
  size_t rcvAddrlen=sizeof(struct sockaddr_ll);
 
  memset(recvAddr,0,sizeof(struct sockaddr_ll));
- rcv=recvfrom(sock,recvPacket,sizeof(arpPacket),0,(void *)recvAddr,(socklen_t*)&rcvAddrlen);
- if(rcv<0) 
-	{ printf("%d\n",rcv);}
+ if(recvfrom(sock,recvPacket,sizeof(arpPacket),0,(void *)recvAddr,(socklen_t*)&rcvAddrlen)<0) 
+	{ printf("rcv error\n");}
 
 
  recvPrint(recvPacket);
  
 
-
+ close(socket);
  free(addr);
  free(recvAddr);
  free(packet);
