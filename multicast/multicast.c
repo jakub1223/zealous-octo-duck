@@ -27,6 +27,7 @@ int main(int argc,char **argv){
  struct ip_mreqn mreq;
  pthread_t thread;
 
+ printf("your nick: ");
  bzero(nick,10);
  scanf("%s",nick);
 
